@@ -12,7 +12,6 @@ cli
   .option('-u, --url <endpoint>','use given api endpoint instead of http://homework.meteor.com/api')
   .option('-v, --verbose', 'be more verbose')
   .option('-i, --id', 'show item IDs')
-  .option('-d, --delete <noteid> [otherids...]', 'delete note(s) with given id')
   .option('-s, --silent',"don't print note list")
   .option('-a, --archived','view archived notes')
 
@@ -22,8 +21,14 @@ cli
   .option('--date <date>', 'the due date for the program')
   .action(postNote)
 
+cli
+  .command('delete <ids...>')
+  .description('delete one or more notes')
+  .action(delNotes)
+
 cli.parse(process.argv)
-var baseurl = (cli.url || 'http://homework.meteor.com/api') + '/' + cli.key
+
+function baseurl(){ return (cli.url || 'http://homework.meteor.com/api') + '/' + cli.key }
 
 if(!cli.key){
   console.log(chalk.red("Invalid API key"));
@@ -31,7 +36,7 @@ if(!cli.key){
 }
 
 function postNote(title,content,options){
-  request.post({uri: (cli.url || 'http://homework.meteor.com/api') + '/' + cli.key, json: {
+  request.post({uri: baseurl(), json: {
     title: title,
     content: content,
     date: options.date || false
@@ -46,8 +51,8 @@ function postNote(title,content,options){
 }
 
 function notes(archived,callback){
-  if(cli.verbose) console.log(chalk.bold('URL: ') + baseurl)
-  request({ uri: baseurl + (archived?'/archived':''), json: true }, function(error,response,body){
+  if(cli.verbose) console.log(chalk.bold('URL: ') + baseurl())
+  request({ uri: baseurl() + (archived?'/archived':''), json: true }, function(error,response,body){
     if(error)
       console.log(chalk.red("Error: ") + chalk.bold(error))
     else
@@ -72,7 +77,7 @@ function notes(archived,callback){
 function delNotes(list){
   var deleted = 0
   list.forEach(function(x){
-    request.del({ uri: baseurl+'/'+x, json: true },function(error,response,body){
+    request.del({ uri: baseurl()+'/'+x, json: true },function(error,response,body){
       if(error)
         console.log(chalk.red("Error: ") + chalk.bold(error))
       else
@@ -85,5 +90,4 @@ function delNotes(list){
   if(!cli.silent) console.log()
 }
 
-if(cli.delete) delNotes(cli.delete.split(' '))
 if(!cli.silent) notes(cli.archived || false, console.log)
