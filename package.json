@@ -2,6 +2,9 @@
   "name": "homework-cli",
   "version": "1.3.0",
   "description": "command line client for Homework",
+  "bin":{
+    "homework": "homework.js"
+  },
   "repository": {
     "type": "git",
     "url": "http://github.com/fazo96/homework-cli"
